@@ -177,6 +177,7 @@
 
   //   let prjType = 'Urban';
   let stateName = [];
+  let mmRsd = [];
   stateName.push('All States');
   let selectedYear = "{{fy}}";
 
@@ -279,6 +280,7 @@
   var color = d3.scale.category10();
 
   const render = data => {
+    console.log('mean, lower, upper', mmRsd)
     var width1;
 
     // Scale the range of the data
@@ -288,7 +290,7 @@
     });
     xScale.domain(ticks);
 
-    yScale.domain([d3.min(data, function (d) { return d.value; }), d3.max(data, function (d) { return d.value; })]);
+    yScale.domain([0, d3.max(data, function (d) { return d.value; }) * 1.5]);
 
     // Nest the entries by block
 
@@ -348,6 +350,8 @@
     legend.exit().remove();
 
     svg.selectAll(".axis").remove();
+    svg.selectAll(".mean-line").remove();
+
 
     // Add the X Axis
     g.append("g")
@@ -374,6 +378,34 @@
       .attr("y", 6)
       .attr("dy", ".71em");
 
+      console.log( yScale(mmRsd[0]), "mean")
+
+      g.append("line")
+  .attr("class", "mean-line")
+  .attr("x1", 0 )
+  .attr("x2",innerWidth)
+  .attr("y1", yScale(mmRsd[0]))   // whatever the y-val should be
+  .attr("y2", yScale(mmRsd[0]))
+  .attr("stroke-width", 4)
+  .attr("stroke", "red");
+
+  g.append("line")
+  .attr("class", "mean-line")
+  .attr("x1", 0 )
+  .attr("x2",innerWidth)
+  .attr("y1", yScale(mmRsd[1]))   // whatever the y-val should be
+  .attr("y2", yScale(mmRsd[1]))
+  .attr("stroke-width", 4)
+  .attr("stroke", "grey");
+
+  g.append("line")
+  .attr("class", "mean-line")
+  .attr("x1", 0 )
+  .attr("x2",innerWidth)
+  .attr("y1", yScale(mmRsd[2]))   // whatever the y-val should be
+  .attr("y2", yScale(mmRsd[2]))
+  .attr("stroke-width", 4)
+  .attr("stroke", "grey");
 
     var mouseG = g.append("g")
       .attr("class", "mouse-over-effects");
@@ -526,30 +558,45 @@
     d.year = d.year;
   });
 
+
+
   let section = 'no_early_anc_register'
 
   $(".category a").click(function () {
+
     var val = $(this).text();
     selectedCategory = val;
     setSection(val);
     st_data = filterCSV(data, 'state', stateName);
     d3.selectAll(".mouse-per-line circle").remove();
-    setData(st_data, section);
+     mmRsd = [];
+
+    mmRsd = calc_mean(st_data, section); 
+
+    setData(st_data, section, mmRsd);
 
   });
 
   let choices = parseURLParameters(window.location.href);
   if (choices.length > 0) {
+  mmRsd = [];
+
     let selectedCat = choices[0].replace(/_/g, ' ');
     selectedCategory = selectedCat;
     $('.category a').parents('.dropdown').find('.dropdown-toggle').html(selectedCat + ' <span class="selectedCategory"></span>');
     st_data = filterCSV(data, 'state', stateName);
     setSection(selectedCat);
-    setData(st_data, section);
+     mmRsd = [];
+
+    mmRsd = calc_mean(st_data, section); 
+    setData(st_data, section, mmRsd);
   }
   else {
     st_data = filterCSV(data, 'state', stateName);
-    setData(st_data, section);
+     mmRsd = [];
+
+    mmRsd = calc_mean(st_data, section); 
+    setData(st_data, section, mmRsd);
   }
 
   function setSection(val) {
@@ -574,7 +621,7 @@
     else if (val == 'C-section deliveries')
       section = 'tot_c_section_deliveries';
     else
-      section = 'tot_still_birth'  
+      section = 'tot_still_birth'
   }
 
 
@@ -583,31 +630,37 @@
     stateName = $('#state').val();
     st_data = filterCSV(data, 'state', stateName);
     legendbox.selectAll("*").remove();
-    setData(st_data, section);
-  });
+     mmRsd = [];
 
-  function setData(data, section) {
+  mmRsd = calc_mean(st_data, section); 
+    setData(st_data, section, mmRsd);
+  });
+  
+  //Initial Graph
+  // st_data = filterCSV(data, 'state', stateName);
+  //  mmRsd = [];
+
+  // mmRsd = calc_mean(st_data, section); 
+
+  // setData(st_data, section, mmRsd);
+
+  function setData(data, section, mmRsd) {
     var dataFilter = data.map(function (d) { return { year: d.year, month: d.month, state: d.state, value: d[section] } })
 
     //debugger
-    //   console.log(data,"data in setData")
-
 
     dataFilter.forEach(function (d) {
       d.value = +d.value;
     });
-    // console.log(dataFilter,"dataFilter")
+
     //debugger
-    render(dataFilter);
+    render(dataFilter, mmRsd);
+    console.log("inSETDAta", mmRsd )
+
     jQuery('h1.page-header').html(section);
   }
 
 
-  //Initial Graph
-  st_data = filterCSV(data, 'state', stateName);
-
-  console.log(st_data, "fyData")
-  setData(st_data, section);
 
   function parseURLParameters() {
     var query = (window.location.search || '?').substr(1);
@@ -618,6 +671,52 @@
     return map;
   }
 
+  function calc_mean(data, section) {
+    var dataF = data.map(function(d){return {value: d[section] }})
+
+    let mmRsdCalc =[]  
+    
+    
+    let X = [];
+
+        dataF.map(d =>{
+      X.push(+d.value)
+    })
+      let tot_count = dataF.length;  
+      //Finding Process Mean
+      let pm_sum = 0, process_mean;
+      
+      for (let i = 0; i < X.length; i++) {
+        pm_sum += X[i];
+      }
+      
+      process_mean = (pm_sum / tot_count);
+
+      //Finding mean moving range 
+      let mR, mR_sum = 0, mean_mR, mR_array = [];
+      
+    for (let i = 1; i < X.length; i++) {
+      mR = (Math.abs(X[i] - X[i-1]));
+      mR_array.push(+mR);
+    }
+      
+    for(let i = 1; i < mR_array.length; i++)
+    {
+      mR_sum += mR_array[i];
+    }
+      mean_mR = (mR_sum / mR_array.length);
+      
+      let seq_dev = (mean_mR / 1.128);
+      
+      let upper_cl, lower_cl;
+      lower_cl = Math.abs(process_mean - 3 * seq_dev);
+      upper_cl = Math.abs(process_mean + 3 * seq_dev);
+
+
+      mmRsdCalc.push(process_mean, lower_cl, upper_cl);
+
+    return mmRsdCalc;
+  }
   $(function () {
     //bind event
     $('#state').val('All States');

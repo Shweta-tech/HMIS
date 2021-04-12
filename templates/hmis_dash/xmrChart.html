@@ -1,0 +1,1291 @@
+{% extends 'dashboard/dash_base.html' %}
+{% load static %}
+
+{% block feature_css %}
+<!-- <link rel="stylesheet" href="{% static 'hmis_dash/css/index.css' %}"> -->
+
+<style>
+  path {
+    stroke: #ccc;
+    stroke-width: 3;
+    fill: none;
+  }
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+  }
+
+  div#legendList {
+    width: 250px;
+    height: 50px;
+    position: absolute;
+    top: 8px;
+    right: 16px;
+    font-weight: bolder;
+    font-size: 15px;
+    color:rgb(8, 8, 8);
+  }
+
+  text.legend {
+    font-size: calc(50% + 0.7vw + 0.7vh);
+  }
+
+  .legendcheckbox {
+    cursor: pointer;
+  }
+
+  #showAll {
+    position: absolute;
+    top: 600px;
+    left: 880px;
+  }
+
+  #clearAll {
+    position: absolute;
+    top: 600px;
+    left: 950px;
+  }
+
+  input {
+    border-radius: 5px;
+    padding: 5px 10px;
+    background: #999;
+    border: 0;
+    color: #fff;
+  }
+
+  div#tooltip {
+    position: absolute;
+    text-align: center;
+    width: auto;
+    height: auto;
+    padding: 5px 0;
+    z-index: 1;
+    font-family: sans-serif;
+    font-size: calc(50% + 0.5vw + 0.5vh);
+    background: lightgrey;
+    border-radius: 10px;
+    pointer-events: none;
+  }
+.lc_link {
+    float: right;
+    font-size: calc(50% + 0.75vw + 0.75vh);
+  }
+  h4{
+    margin-left: 50px;
+    font-weight: bolder; font-size: 30px;
+  }
+  #inds {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+  }
+
+  .overlay {
+    fill: none;
+    pointer-events: all;
+  }
+
+  .plot {
+    fill: #fff;
+  }
+
+  p {
+    font-size: calc(50% + 0.5vw + 0.5vh);
+    font-weight: bold;
+  }
+  #example1 {
+  border: 2px solid rgb(1, 124, 63);
+  /* padding: 5px; */
+  margin-bottom: 5px;
+  border-radius: 25px;
+  text-align: center;
+  /* margin-left: 50px; */
+  background-color:#8df389b4;
+  width: 200px; height: 100px;
+  margin-top: 100px;
+}
+span{
+  font-weight: bold;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12 h-75">
+    <div class="heading text-center" > <span id="indicator"></span> </div>
+
+  </div>
+</div>
+
+<div class="row mb-2" style="background-color:#52be4eb4;">
+  <!-- <div class="dropdown m-1"> -->
+   
+    
+  <!-- </div> -->
+  <!-- <div class="dropdown m-1">
+    <select name="state" id="state" class="selectpicker" multiple>
+      {% for state_select in state %}
+      <option value='{{ state_select.state }}'>{{ state_select.state }}</option>
+      {% endfor %}
+    </select>
+  </div> -->
+  <label class="d-inline-block text-light ml-5 mt-2 lc_link"  for="area_select">Select State:</label>
+
+  <div class="dropdown m-2">
+    <select name="state" id="state" class="custom-select lc_link">
+        {% for state_select in state %}
+        <option value='{{ state_select.state }}'>{{ state_select.state }}</option>
+        {% endfor %}
+    </select>
+</div>
+<label class="d-inline-block text-light ml-5 mt-2 lc_link" for="area_select">Select Year:</label>
+
+<div class="dropdown m-2">
+  <select name="fyList" id="fyList" class="custom-select lc_link">
+      {% for fy_select in fyList %}
+      <option value='{{ fy_select.year }}'>{{ fy_select.year }}</option>
+      {% endfor %}
+  </select>
+</div>
+<a href="" id="per_url"><button type="button" class="btn btn-light ml-5 m-2 lc_link" style="float: right; color: black;">Percent</button></a>
+
+<div style="margin-left: 200px; margin-top: 20px;"><a href="" id="stack" target="_blank" class="lc_link" style="color: white;">
+Stack-area Chart
+  <i class="fa fa-chevron-right" aria-hidden="true"></i>
+</a></div>
+<div class="dropdown" style="margin-left: 150px; margin-top: 10px;">
+  <button type="button" class="btn btn-light dropdown-toggle lc_link" data-toggle="dropdown"><i class="fa fa-bars" aria-hidden="true"></i>
+  </button>
+  <div class="dropdown-menu">
+    <a class="navbar-dark" href="{% url 'home' %}"><i class="fa fa-home" aria-hidden="true"></i>
+      Home <span class="sr-only">(current)</span>
+  </a>
+<br>
+{% if user.is_authenticated %}
+
+  <a class="navbar-dark" href="{% url 'logout' %}"><i class="fa fa-sign-out" aria-hidden="true"></i>
+      Logout <span class="sr-only">(current)</span>
+  </a>
+
+{% else %}
+
+  <a class="navbar-dark" href="{% url 'login' %}"><i class="fa fa-sign-in" aria-hidden="true"></i>
+      Login <span class="sr-only">(current)</span>
+  </a>
+{% endif %}
+  </div>
+</div>
+  <!-- <button type="button" class="btn btn-light m-1" onclick="location.href=`{% url 'linechart' fy %}`">Percent</button> -->
+
+  <!-- <div class="dropdown m-1">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+      aria-haspopup="true" aria-expanded="false">
+      Select State
+      <span class="selectedState"></span>
+    </button>
+    <div class="dropdown-menu state" aria-labelledby="dropdownMenuButton">
+      {% for state_select in state %}
+      <a class="dropdown-item" href="#">{{ state_select.state }}</a>
+      {% endfor %}
+    </div>
+  </div> -->
+  <!-- <div class="dropdown m-1">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+      aria-haspopup="true" aria-expanded="false">
+      <span class="selectedPtype"></span>
+    </button>
+    <div class="dropdown-menu ptype" aria-labelledby="dropdownMenuButton">
+      <a class="dropdown-item" href="#">Urban</a>
+      <a class="dropdown-item" href="#">Rural</a>
+      <a class="dropdown-item" href="#">Tribal</a>
+    </div>-->
+</div>
+
+<!-- <div class="row">
+  <p>Click rectangle box besides block names to view month wise trend for
+    the project</p>
+</div> -->
+<div class="row"><div class="col-4"><div class="row">
+  <div class="col" style="margin-left: 100px;">
+    <h4>Target Achieved</h4>
+    <div class="row">
+    <div id="example1"  >
+      <p>Actual Value</p>
+      <span id="actual"></span>
+
+    </div>
+    <div id="donut" style="float:right"></div>
+    
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+  <!-- <a href="{% url 'xmrChart' dist_name fy %}?id1=PW_given_180_Iron_Folic_Acid_(IFA)_tablets" target="_blank"> -->
+    <h4>Data Quality</h4>
+      <!-- <div id="donut1" style="float:right"></div> -->
+    </div>
+  
+</div></div> <div class="col-8">
+  <div class="row m-2">
+    <!-- <div class="col-2" id="legendList">
+    </div> -->
+   
+    
+  </div><div class="row m-2">
+  <!-- <div class="col-2" id="legendList">
+  </div> -->
+  <div class="col" id="chart">
+    <div id='tooltip'></div>
+  </div>
+  
+</div></div></div>
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://d3js.org/d3.v3.min.js"></script>
+
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+
+
+<script>
+
+document.getElementById("per_url").href=location.toString().replace("xmrChart", "xmrChart_percent");
+document.getElementById("stack").href=location.toString().replace("xmrChart", "stack");
+let choices = parseURLParameters(window.location.href);
+function parseURLParameters() {
+    var query = (window.location.search || '?').substr(1);
+    var map = [];
+    query.replace(/([^&=]+)=?([^&]*)(?:&+|$)/g, function (match, key, value) {
+      map.push(value);
+    });
+ 
+    return map;
+  }
+    let sel_fy = '{{ fy }}';
+    let selectedCat = choices[0].replace(/_/g, ' ');
+
+    let selectedYear = [];
+  selectedYear.push(sel_fy)
+   window.onload = function() {
+    if (document.getElementById('donut')){
+      let box='#donut';
+      let field = 'avg_ta';
+      drawdonut(box,field);}
+      if (document.getElementById('donut1')){
+      let box='#donut1';
+      let field = 'avg_dq'
+
+      drawdonut(box,field);}
+      if (document.getElementById('chart')){
+      let box='#chart';
+      
+      drawxmr(box);}}
+
+      function filterCSV(csv, key, value) {
+        var result = [];
+        csv.forEach(function (val, idx, arr) {
+
+            if (val[key] == value) {
+
+                result.push(val)
+            }
+        })
+        return result;
+    }
+   
+  function drawxmr(box){
+  
+console.log(sel_fy,"year")
+  let width = 1200,
+    height = 650;
+
+  //   let prjType = 'Urban';
+  let stateName = [];
+  let mmRsd = [];
+  stateName.push('India');
+  // let selectedYear = "{{fy}}";
+
+  const svg = d3.select('#chart').append('svg').attr('id', 'svg1').attr('width', width)
+    .attr('height', height);
+
+  const legendbox = d3.select('#legendList').append('svg').attr('id', 'svg2').attr('width', 250)
+    .attr('height', 100);
+
+  let ticks;
+  let selectedCategory = 'Early ANC Registeration';
+
+  function responsivefy(svg) {
+
+    // Container is the DOM element, svg is appended. 
+    // Then we measure the container and find its 
+    // aspect ratio.
+
+    const container = d3.select(svg.node().parentNode),
+      width = parseInt(svg.style('width'), 10),
+      height = parseInt(svg.style('height'), 10),
+      aspect = width / height;
+
+    // Add viewBox attribute to set the value to initial size 
+    // add preserveAspectRatio attribute to specify how to scale  
+    // and call resize so that svg resizes on page load 
+    svg.attr('viewBox', `0 0 ${width} ${height}`).
+      attr('preserveAspectRatio', 'xMinYMin').
+      call(resize);
+
+    d3.select(window).on('resize.', resize);
+
+    function resize() {
+      const targetWidth = $(window).width();
+      const targetheight = $(window).height();
+      //var targetHeight = $(window).height();
+      d3.select('#svg1').attr('width', targetWidth);
+      d3.select('#svg1').attr('height', targetheight);
+      d3.select('#svg2').attr('width', targetWidth);
+      d3.select('#svg2').attr('height', targetheight);
+    }
+  }
+
+//   function filterCSV(csv, key, value) {
+//     var result = [];
+//     for (var i = 0; i < value.length; i++) {
+//       csv.forEach(function (val, idx, arr) {
+
+//         if (val[key] == value[i]) {
+
+//           result.push(val)
+//         }
+//       })
+//     }
+//     return result;
+//   }
+
+
+
+  var mouseG
+
+  var margin = { top: 10, right: 20, bottom: 30, left: 150 },
+    innerWidth = 1000 - margin.left - margin.right,
+    innerHeight = 600 - margin.top - margin.bottom;
+
+  // Set the ranges
+  var xScale = d3.scale.ordinal().rangePoints([0, innerWidth], 0.5);
+  var yScale = d3.scale.linear().range([innerHeight, 0]);
+
+  // Define the axes
+  var xAxis = d3.svg.axis().scale(xScale)
+    .orient("bottom");
+  // let numberTicksY = 6;
+  var yAxis = d3.svg.axis().scale(yScale).orient("left");
+    // use last 2 ticks (cld have used first 2 if wanted) with y scale fn to determine positions
+   
+  // Define the line
+  var stateline = d3.svg.line()
+    .interpolate("linear")
+    .x(function (d) { return xScale(d.month); })
+    .y(function (d) { return yScale(d.value); });
+
+  var g = svg.append('g')
+    .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+  //make a rectangle so there is something to click on
+  g.append("rect")
+    .attr("width", innerWidth)
+    .attr("height", innerHeight)
+    .attr("class", "plot");
+
+  //make a clip path for the graph  
+  var clip = g.append("clipPath")
+    .attr("id", "clip")
+    .append("svg:rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", innerWidth)
+    .attr("height", innerHeight);
+
+
+  var color = d3.scale.category10();
+
+  const render = data => {
+    console.log(data,"in render")
+    console.log('mean, lower, upper', mmRsd)
+    var width1;
+    d3.select('#indicator').text(function () {
+      console.log(yAxis,"yuear")
+        var i_name = selectedCat + " State-Wise " + selectedYear;
+        return i_name; })
+    // Scale the range of the data
+
+    ticks = data.map(function (d) {
+      return d.month
+    });
+    xScale.domain(ticks);
+    let minimum = d3.min(data, function (d) { return d.value; });
+    let maximum = d3.max(data, function (d) { return d.value; })
+    console.log(minimum,maximum)
+    console.log(mmRsd[1],mmRsd[3])
+    if(minimum<mmRsd[1] && maximum<mmRsd[3])
+    {yScale.domain([minimum, mmRsd[3]*1.4]);}
+    else if(minimum>mmRsd[1] && maximum<mmRsd[3])
+    {yScale.domain([mmRsd[1], mmRsd[3]*1.4]);}
+    else if(minimum<mmRsd[1] && maximum>mmRsd[3])
+    {yScale.domain([minimum, maximum*1.4]);}
+    else if(minimum>mmRsd[1] && maximum>mmRsd[3])
+    {yScale.domain([mmRsd[1], maximum*1.4]);}
+    // var bands = d3.scale.ordinal()
+    //         .domain([minimum, mmRsd[3]*1.4])
+    //         .rangeRoundBands([0, 100], 0.1);
+    // console.log(bands.range());
+    // console.log(bands.rangeBand());
+    // console.log(bands,"yaxis")
+    // Nest the entries by block
+
+    dataNest = d3.nest()
+      .key(function (d) { return d.state })
+      .entries(data);
+
+    var result = dataNest.filter(function (val, idx, arr) {
+      return $("." + val.key).attr("fill") != "#ccc"
+      // matching the data with selector status
+    })
+
+
+    var block = g.selectAll(".line")
+      .data(result, function (d) { return d.key });
+
+    block.enter().append("path")
+      .attr("class", "line");
+
+    block.transition()
+      // .style("stroke", function (d, i) { return d.color = color(d.key); })
+      .style("stroke", "#a55fa5")
+      .attr("id", function (d) { return 'tag' + d.key.replace(/\s+/g, ''); }) // assign ID
+      .attr("d", function (d) {
+        return stateline(d.values);
+      });
+
+
+    block.exit().remove();
+
+    let legend = d3.select("#svg2")
+      .selectAll("text")
+      .data(dataNest, function (d) { return d.key });
+
+
+    //checkboxes
+    legend.enter().append("rect")
+      .attr("width", 20)
+      .attr("height", 20)
+      .attr("x", 0)
+      .attr("y", function (d, i) { return 0 + i * 30; })  // spacing
+      .attr("fill", "#a55fa5")
+      // .attr("fill", function (d) {
+      //   return color(d.key);
+
+      // })
+      .attr("class", function (d, i) { return "legendcheckbox " + d.key })
+
+    // Add the Legend text
+    legend.enter().append("text")
+      .attr("x", 25)
+      .attr("y", function (d, i) { return 18 + i * 30; })
+      .attr("class", "legend");
+
+    legend.transition()
+      .style("fill", "#777")
+      .text(function (d) { return d.key; });
+
+    legend.exit().remove();
+
+    svg.selectAll(".axis").remove();
+    svg.selectAll(".mean-line").remove();
+    svg.selectAll(".line-text").remove();
+    
+
+    // Add the X Axis
+    g.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + innerHeight + ")")
+      .call(xAxis)
+      .attr("font-size", "20px")
+      .attr("font-weight", "bold")
+      .selectAll("text")
+      .attr("y", 0)
+      .attr("x", 9)
+      .attr("dy", ".35em")
+      .attr("transform", "rotate(45)")
+      .style("text-anchor", "start");
+
+    // Add the Y Axis
+    g.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+      .attr("font-size", "20px")
+      .attr("font-weight", "bold")
+      .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em");
+
+
+      g.append("line")
+  .attr("class", "mean-line")
+  .attr("x1", 0 )
+  .attr("x2",innerWidth)
+  .attr("y1", yScale(mmRsd[0]))   // whatever the y-val should be
+  .attr("y2", yScale(mmRsd[0]))
+  .attr("stroke-width", 3)
+  .attr("stroke", "red");
+
+  g.append("text")
+    .attr("class", "line-text")
+    .attr("transform", "translate("+(innerWidth+3)+","+yScale(mmRsd[0])+")")
+    .attr("dy", ".35em")
+    .attr("text-anchor", "start")
+    .style("fill", "red")
+    .text("AVERAGE");
+
+
+  g.append("line")
+  .attr("class", "mean-line")
+  .attr("x1", 0 )
+  .attr("x2",innerWidth)
+  .attr("y1", yScale(mmRsd[1]))   // whatever the LOWER should be
+  .attr("y2", yScale(mmRsd[1]))
+  .attr("stroke-width", 3)
+  .attr("stroke", "grey");
+
+
+  g.append("text")
+    .attr("class", "line-text")
+      .attr("transform", "translate("+(innerWidth+3)+","+yScale(mmRsd[1])+")")
+      .attr("dy", ".35em")
+      .attr("text-anchor", "start")
+      .style("fill", "#696969")
+      .text("LOWER");
+
+  g.append("line")
+  .attr("class", "mean-line")
+  .attr("x1", 0 )
+  .attr("x2",innerWidth)
+  .attr("y1", yScale(mmRsd[2]))   // whatever the y-val should be
+  .attr("y2", yScale(mmRsd[2]))
+  .attr("stroke-width", 3)
+  .attr("stroke", "grey");
+
+  g.append("text")
+    .attr("class", "line-text")
+      .attr("transform", "translate("+(innerWidth+3)+","+yScale(mmRsd[2])+")")
+      .attr("dy", ".35em")
+      .attr("text-anchor", "start")
+      .style("fill", "#696969")
+      .text("UPPER");
+
+      g.append("line")
+  .attr("class", "mean-line")
+  .attr("x1", 0 )
+  .attr("x2",innerWidth)
+  .attr("y1", yScale(mmRsd[3]))   // whatever the y-val should be
+  .attr("y2", yScale(mmRsd[3]))
+  .attr("stroke-width", 3)
+  .attr("stroke", "green");
+
+  g.append("text")
+    .attr("class", "line-text")
+      .attr("transform", "translate("+(innerWidth+3)+","+yScale(mmRsd[3])+")")
+      .attr("dy", ".35em")
+      .attr("text-anchor", "start")
+      .style("fill", "green")
+      .text("ANNUAL TARGET");
+
+    // var mouseG = g.append("g")
+    //   .attr("class", "mouse-over-effects");
+
+
+    // var tooltip = d3.select('#tooltip');
+
+    // mouseG.append("path") // create vertical line to follow mouse
+    //   .data(result)
+    //   .attr("class", "mouse-line")
+    //   .style("stroke", "black")
+    //   .style("stroke-width", '3px')
+    //   .style("opacity", "0");
+
+    // var lines = document.getElementsByClassName('line');
+
+    // var mousePerLine = mouseG.selectAll('.mouse-per-line')
+    //   .data(result)
+    //   .enter()
+    //   .append("g")
+    //   .attr("class", "mouse-per-line");
+
+    // mousePerLine.append("circle")
+    //   .attr('class', 'topic-circle')
+    //   .attr("r", 7)
+    //   .style("stroke", function (d) {
+    //     return color(d.key)
+    //   })
+    //   .style("fill", "none")
+    //   .style("stroke-width", '3px')
+    //   .style("opacity", "0");
+
+
+    // mouseG.append('svg:rect')
+    //   .attr('width', width)
+    //   .attr('height', height)
+    //   .attr('opacity', 0)
+    //   .attr('pointer-events', 'all')
+    //   .on('mouseout', function () { // on mouse out hide line, circles and text
+    //     d3.select(".mouse-line")
+    //       .style("opacity", "0");
+    //     d3.selectAll(".mouse-per-line circle")
+    //       .style("opacity", "0");
+    //   })
+    //   .on('mouseover', function () { // on mouse in show line, circles and text
+    //     d3.select(".mouse-line")
+    //       .style("opacity", "1");
+    //     d3.selectAll(".mouse-per-line circle")
+    //       .style("opacity", "1")
+    //   })
+    //   .on('mousemove', drawTooltip)
+    //   .on('mouseout', removeTooltip);
+
+
+    // function removeTooltip() {
+    //   if (tooltip) tooltip.style('display', 'none');
+    //   // if(mouseG)     mouseG.selectAll('.mouse-per-line').selectAll('.topic-circle').remove();
+    // }
+
+    // function drawTooltip() {
+
+    //   var monthX
+
+    //   var tickPos = xScale.range();
+    //   var m = d3.mouse(this),
+    //     lowDiff = 1e99,
+    //     xI = null;
+    //   d3.selectAll(".mouse-per-line")
+    //     .attr("transform", function (d, i) {
+    //       for (var i = 0; i < tickPos.length; i++) {
+    //         var diff = Math.abs(m[0] - tickPos[i]);
+    //         if (diff < lowDiff) {
+    //           lowDiff = diff;
+    //           xI = i;
+
+    //         }
+    //       }
+    //       d3.select(".mouse-line")
+    //         .attr("d", function () {
+    //           monthX = d.values[xI].month
+    //           var data = "M" + xScale(d.values[xI].month) + "," + height;
+    //           data += " " + xScale(d.values[xI].month) + "," + 0;
+    //           return data;
+    //         });
+    //       return "translate(" + xScale(d.values[xI].month) + "," + yScale(d.values[xI].value) + ")";
+
+
+    //     });
+
+    //   tooltip.html('<b style="color:#FF0000">' + monthX + '</b>')
+    //     .style('display', 'block')
+    //     .style('left', d3.event.pageX + "px")
+    //     .style('top', 40 + "px")
+    //     .selectAll()
+    //     .data(result).enter()
+    //     .append('div')
+    //     .style('color', 'black')
+    //     .html(d => d.key + ': ' + '<b>' + yScale.invert(yScale(d.values[xI].value)).toFixed(0) + '</b>');
+    // }
+
+  };
+
+  function clearAll() {
+    d3.selectAll(".line")
+      .transition().duration(100)
+      .attr("d", function (d) {
+        return null;
+      });
+    d3.select("#legend").selectAll("rect")
+      .transition().duration(100)
+      .attr("fill", "#ccc");
+  };
+
+  function showAll() {
+    d3.selectAll(".line")
+      .transition().duration(100)
+      .attr("d", function (d) {
+        return stateline(d.values);
+      });
+    d3.select("#legend").selectAll("rect")
+      .attr("fill", function (d) {
+        if (d.active == true) {
+          return color(d.key);
+        }
+      })
+  };
+
+  // Get the data
+  data_from_django = {{ data | safe }};
+  var data = []
+  data_from_django.forEach(element => {
+    data.push(element.fields);
+  });
+
+  data.forEach(function (d) {
+
+    d.no_insti_del = +d.no_insti_del;
+    d.early_breast_fed_numeric = +d.early_breast_fed_numeric;
+    d.hbnc_counsel_numeric = +d.hbnc_counsel_numeric;
+    d.no_child_given_ifa = d.no_child_given_ifa;
+    d.no_child_given_albendazole = d.no_child_given_albendazole;
+    d.no_child_given_vita = d.no_child_given_vita;
+    d.vhsnds_numeric = d.vhsnds_numeric;
+    d.tot_no_pw_reg = +d.tot_no_pw_reg;
+    d.no_4_or_more_anc = +d.no_4_or_more_anc;
+    d.no_pw_given_calcium = +d.no_pw_given_calcium;
+    d.state = d.state;
+    d.month = d.month;
+    d.year = d.year;
+  });
+
+
+console.log("data", data)
+  let section ='no_early_anc_register'
+
+  // $(".category a").click(function () {
+
+  //   var val = $(this).text();
+  //   selectedCategory = val;
+  //   setSection(val);
+  //   st_data = filterCSV(data, 'state', stateName);
+  //   d3.selectAll(".mouse-per-line circle").remove();
+  //    mmRsd = [];
+
+  //   mmRsd = calc_mean(st_data, section); 
+
+  //   setData(st_data, section, mmRsd);
+
+  // });
+
+  // let choices = parseURLParameters(window.location.href);
+  if (choices.length > 0) {
+  mmRsd = [];
+
+    console.log(selectedCat)
+    
+      
+
+    selectedCategory = selectedCat;
+    $('.category a').parents('.dropdown').find('.dropdown-toggle').html(selectedCat + ' <span class="selectedCategory"></span>');
+    st_data = filterCSV(data, 'state', stateName);
+    fyData = filterCSV(st_data, 'year', selectedYear);
+    setSection(selectedCat);
+     mmRsd = [];
+
+    mmRsd = calc_mean(st_data, section); 
+    setData(fyData, section, mmRsd);
+  }
+  else {
+    st_data = filterCSV(data, 'state', stateName);
+    fyData = filterCSV(st_data, 'year', selectedYear);
+     mmRsd = [];
+
+    mmRsd = calc_mean(fyData, section); 
+    setData(fyData, section, mmRsd);
+  }
+
+  function setSection(val) {
+    if (val == 'VHSNDS')
+      section = 'vhsnds_numeric';
+    else if (val == 'No of institutional deliveries')
+      section = 'no_insti_del';
+    else if (val == 'PW received 4 or more ANC check ups')
+      section = 'no_4_or_more_anc';
+    else if (val == 'Early Breastfed')
+      section = 'early_breast_fed_numeric';
+    else if (val == 'HBNC counsel')
+      section = 'hbnc_counsel_numeric';
+    else if (val == 'No of children given IFA')
+      section = 'no_child_given_ifa';
+    else if (val == 'PW given 360 Calcium tablets')
+      section = 'no_pw_given_calcium';
+    else if (val == 'PW given 180 Iron Folic Acid (IFA) tablets')
+      section = 'no_pw_given_ifa';
+    else if (val == 'No of children given Albendazole')
+      section = 'no_child_given_albendazole';
+    else if(val == 'No of children given Vitamin-A'){
+      section = 'no_child_given_vita';
+  
+    }
+  }
+
+
+  $("#state").change(function () {
+    stateName = [];
+    stateName = $('#state').val();
+    st_data = filterCSV(data, 'state', stateName);
+    fyData = filterCSV(st_data, 'year', selectedYear);
+    legendbox.selectAll("*").remove();
+     mmRsd = [];
+
+  mmRsd = calc_mean(fyData, section); 
+    setData(fyData, section, mmRsd);
+  });
+  $("#fyList").change(function () {
+        selectedYear = [];
+        selectedYear = $('#fyList').val();
+        st_data = filterCSV(data, 'state', stateName);
+        fyData = filterCSV(st_data, 'year', selectedYear);
+        legendbox.selectAll("*").remove();
+        setData(fyData, section);
+    });
+  //Initial Graph
+  // st_data = filterCSV(data, 'state', stateName);
+  //  mmRsd = [];
+
+  // mmRsd = calc_mean(st_data, section); 
+
+  // setData(st_data, section, mmRsd);
+
+  function setData(data, section, mmRsd) {
+    console.log(section,"section")
+    var dataFilter = data.map(function (d) { return { year: d.year, month: d.month, state: d.state, value: d[section] } })
+
+    //debugger
+
+    dataFilter.forEach(function (d) {
+      d.value = +d.value;
+    });
+
+    //debugger
+    render(dataFilter, mmRsd);
+
+    jQuery('h1.page-header').html(section);
+  }
+
+
+
+  
+
+  function calc_mean(data, section) {
+    console.log(data, "data")
+    var dataF = data.map(function(d){return {value: d[section] }})
+    let pw_data = [];
+    if(section == "no_4_or_more_anc" || section=="no_pw_given_calcium" || section=="no_pw_given_ifa" || section=="no_insti_del")
+                {data.map(d =>{
+      pw_data.push(+d.tot_no_pw_reg)
+    
+    })}
+
+    else if(section=="early_breast_fed_numeric" || section=="no_child_given_vita"){
+      data.map(d =>{
+      pw_data.push(+d.total_births)
+    
+    })
+    }
+    else if(section=="hbnc_counsel_numeric"){
+      data.map(d =>{
+      pw_data.push(+d.total_deliveries)
+    
+    })
+    }
+    else if(section=="vhsnds_numeric"){
+      data.map(d =>{
+      pw_data.push(+d.tot_aww_count)
+    
+    })
+    }
+    else if(section=="no_child_given_ifa"){
+      data.map(d =>{
+      pw_data.push(+d.child_6to59months)
+    
+    })
+    }
+    else if(section=="no_child_given_albendazole"){
+      data.map(d =>{
+      pw_data.push(+d.child_12to59months)
+    
+    })
+    }
+    console.log("pw_data", pw_data)
+
+    //Calculating Annual Target
+    let pw_sum = 0, annual_target;
+    for (let i = 0; i < pw_data.length; i++) {
+        pw_sum += pw_data[i];
+      }
+      
+      annual_target = (pw_sum / 12);
+
+    let mmRsdCalc =[];  
+    
+    
+    let X = [];
+
+        dataF.map(d =>{
+      X.push(+d.value)
+    })
+      let tot_count = dataF.length;  
+      //Finding Process Mean
+      let pm_sum = 0, process_mean;
+      
+      for (let i = 0; i < X.length; i++) {
+        pm_sum += X[i];
+      }
+      
+      process_mean = (pm_sum / tot_count);
+
+      //Finding mean moving range 
+      let mR, mR_sum = 0, mean_mR, mR_array = [];
+      
+    for (let i = 1; i < X.length; i++) {
+      mR = (Math.abs(X[i] - X[i-1]));
+      mR_array.push(+mR);
+    }
+      
+    for(let i = 1; i < mR_array.length; i++)
+    {
+      mR_sum += mR_array[i];
+    }
+      mean_mR = (mR_sum / mR_array.length);
+      
+      let seq_dev = (mean_mR / 1.128);
+      
+      let upper_cl, lower_cl;
+      lower_cl = Math.abs(process_mean - 3 * seq_dev);
+      upper_cl = Math.abs(process_mean + 3 * seq_dev);
+
+
+      mmRsdCalc.push(process_mean, lower_cl, upper_cl, annual_target);
+
+    return mmRsdCalc;
+  }}
+
+
+  
+  $(function () {
+    //bind event
+    $('#state').val('India');
+    $('#fyList').val(sel_fy);
+    // $(".category a").click(function () {
+    //   var valCategory = $(this).text();
+    //   $(this).parents('.dropdown').find('.dropdown-toggle').html(valCategory + ' <span class="selectedCategory"></span>');
+    // });
+
+    // //trigger event
+    // if (choices.length <= 0)
+    //   $(".category a").first().trigger('click');
+
+  });
+  // console.log({{ id1 }});
+
+function drawdonut(box,field){
+// set the dimensions and margins of the graph
+var w=300,h=300;
+var svg1=d3.select(box)
+   .append("svg")
+   .attr({
+       width:w,
+       height:h
+   }).append('g')
+   .attr({
+       transform:'translate('+w/2+','+h/2+')'
+   });
+console.log(field)
+
+ta_from_django={{ context.ta_data | safe }}
+  console.log(ta_from_django,'ta')
+  var ta = [];
+  // console.log(ta)
+  ta_from_django.forEach(element => {
+    // if (element.fields.per_vhsnds > 100)
+    //         element.fields.per_vhsnds = 100;
+        ta.push(element.fields);
+    });
+// Create dummy data
+ta.forEach(function (d) {
+d.avg_ta = +d.avg_ta;
+d.per_child_given_ifa = +d.per_child_given_ifa;
+d.per_4_or_more_anc = +d.per_4_or_more_anc;
+d.per_early_breast_fed = +d.per_early_breast_fed;
+d.per_vhsnds = +d.per_vhsnds;
+d.per_insti_del = +d.per_insti_del;
+d.per_hbnc_counsel = +d.per_hbnc_counsel;
+d.per_pw_given_calcium = +d.per_pw_given_calcium;
+d.per_pw_given_ifa = +d.per_pw_given_ifa;
+d.per_child_given_albendazole = +d.per_child_given_albendazole;
+d.per_child_given_vita = +d.per_child_given_vita;
+d.state = d.state;
+d.year = d.year;
+});   
+let stateName = [];
+stateName.push('India');
+
+
+  //Initial Graph
+  // st_data = filterCSV(data, 'state', stateName);
+  //  mmRsd = [];
+
+  // mmRsd = calc_mean(st_data, section); 
+
+  // setData(st_data, section, mmRsd);
+
+  
+
+var createGradient=function(svg,id,color1,color2){
+ 
+ var defs = svg.append("svg:defs");
+
+ var red_gradient = defs.append("svg:linearGradient")
+       .attr("id", id)
+       .attr("x1", "0%")
+       .attr("y1", "0%")
+       .attr("x2", "50%")
+       .attr("y2", "100%")
+       .attr("spreadMethod", "pad");
+
+ red_gradient.append("svg:stop")
+       .attr("offset", "50%")
+       .attr("stop-color", color1)
+       .attr("stop-opacity", 1);
+
+ red_gradient.append("svg:stop")
+       .attr("offset", "100%")
+       .attr("stop-color", color2)
+       .attr("stop-opacity", 1);
+};
+// console.log(ta.avg_ta)
+// let percent;
+
+
+var outerRadius=(w/2)-10;
+var innerRadius=120;
+let section1;
+let percent;
+var color = ['#337ab7','#337ab7','#D3D3D3','white'	];
+const render1 = data => {
+
+  
+percent= data.map(a => a.value1);
+actual = data.map(a => a.value);
+console.log(data,"donut")
+  var ratio=percent/100;
+
+  d3.select('#actual').text(function () {
+      // console.log(a,"yuear")
+        var i_name =  actual + "%";
+        return i_name; })
+// var pie=d3.layout.pie()
+//    .value(function(d){return d})
+//    .sort(null);
+
+    // svg.select(".pathChart").remove();
+    // svg.selectAll(".line-text").remove();
+
+    // svg.select("#donut").remove();
+   
+
+
+
+  // svg1.selectAll("*").remove();
+createGradient(svg1,'gradient',color[0],color[1]);
+
+  // pathChart.selectAll("*").remove();
+var arc=d3.svg.arc()
+   .innerRadius(innerRadius)
+   .outerRadius(outerRadius)
+   .startAngle(0)
+   .endAngle(2*Math.PI);
+
+var arcLine=d3.svg.arc()
+   .innerRadius(innerRadius)
+   .outerRadius(outerRadius)
+   .startAngle(0);
+
+
+var pathBackground=svg1.append('path')
+.attr("class","pathBack")
+   .attr({
+       d:arc
+   })
+   .style({
+       fill:color[2],
+       stroke:'white'
+   });
+
+
+var pathChart=svg1.append('path')
+   .datum({endAngle:0})
+   .attr("class","pathChart")
+   .attr({
+       d:arcLine
+   })
+   .style({
+       fill:'url(#gradient)',
+       stroke:'white'
+   });
+
+var middleCount=svg1.append('text')
+   .text(function(d){
+     console.log(d)
+       return d;
+   })
+
+   .attr({
+       class:'middleText',
+       'text-anchor':'middle',
+       dy:25,
+       dx:-15
+   })
+   .style({
+       fill:color[1],
+       'font-size':'60px'
+
+   });
+svg1.append('text')
+   .text('%')
+   .attr({
+       class:'percent',
+       'text-anchor':'middle',
+       dy:25,
+       dx:65
+
+   })
+   .style({
+       fill:color[1],
+       'font-size':'60px'
+
+   });
+
+
+var arcTween=function(transition, newAngle) {
+   transition.attrTween("d", function (d) {
+       var interpolate = d3.interpolate(d.endAngle, newAngle);
+       var interpolateCount = d3.interpolate(0, percent);
+       return function (t) {
+           d.endAngle = interpolate(t);
+           middleCount.text(Math.floor(interpolateCount(t)));
+           return arcLine(d);
+       };
+   });
+};
+
+
+var animate=function(){
+   pathChart.transition()
+           .duration(750)
+           .ease('cubic')
+           .call(arcTween,((2*Math.PI))*ratio);
+
+
+};
+
+
+setTimeout(animate,0);
+  }
+  
+// console.log(st_ta,"percebt")
+// render1(fyData)
+st_ta = filterCSV(ta, 'state', stateName);
+    fyData = filterCSV(st_ta, 'year', selectedYear);
+
+  if (choices.length > 0) {
+
+    let selectedCat = choices[0].replace(/_/g, ' ');
+    console.log(selectedCat)
+    
+        
+      
+
+    selectedCategory = selectedCat;
+    // $('.category a').parents('.dropdown').find('.dropdown-toggle').html(selectedCat + ' <span class="selectedCategory"></span>');
+    st_ta = filterCSV(ta, 'state', stateName);
+    fyData = filterCSV(st_ta, 'year', selectedYear);
+    setSection(selectedCat);
+
+    // mmRsd = calc_mean(st_data, section); 
+    setData(fyData, section);
+  }
+  else {
+    st_data = filterCSV(ta, 'state', stateName);
+    fyData = filterCSV(st_data, 'year', selectedYear);
+
+    setData(fyData, section);
+  }
+
+function setSection(val) {
+    if (val == 'VHSNDS')
+      section = 'per_vhsnds';
+    else if (val == 'No of institutional deliveries')
+      section = 'per_insti_del';
+    else if (val == 'PW received 4 or more ANC check ups')
+      section = 'per_4_or_more_anc';
+    else if (val == 'Early Breastfed')
+      section = 'per_early_breast_fed';
+    else if (val == 'HBNC counsel')
+      section = 'per_hbnc_counsel';
+    else if (val == 'No of children given IFA')
+      section = 'per_child_given_ifa';
+    else if (val == 'PW given 360 Calcium tablets')
+      section = 'per_pw_given_calcium';
+    else if (val == 'PW given 180 Iron Folic Acid (IFA) tablets')
+      section = 'per_pw_given_ifa';
+    else if (val == 'No of children given Albendazole')
+      section = 'per_child_given_albendazole';
+    else if(val == 'No of children given Vitamin-A'){
+      section = 'per_child_given_vita';
+  
+    }
+  }
+
+
+
+  $("#state").change(function () {
+    stateName = [];
+    stateName = $('#state').val();
+    st_data = filterCSV(ta, 'state', stateName);
+    fyData = filterCSV(st_data, 'year', selectedYear);
+    svg1.selectAll("*").remove();
+
+    setData(fyData, section);
+  });
+  $("#fyList").change(function () {
+        selectedYear = [];
+        selectedYear = $('#fyList').val();
+        st_data = filterCSV(ta, 'state', stateName);
+        fyData = filterCSV(st_data, 'year', selectedYear);
+        svg1.selectAll("*").remove();
+        setData(fyData, section);
+    });
+function setData(data, section) {
+    console.log(data[0][section],"section")
+     section1=data[0][section];
+    if(section1>100){
+       section1=100;
+    }
+    var dataFilter = data.map(function (d) { return { year: d.year, month: d.month, state: d.state, value: d[section],value1:section1 } })
+
+    //debugger
+
+    dataFilter.forEach(function (d) {
+      d.value = +d.value;
+    });
+console.log(dataFilter,"donaut data")
+    //debugger
+    render1(dataFilter);
+
+    // jQuery('h1.page-header').html(section);
+  }
+}
+
+</script>
+{% endblock %}

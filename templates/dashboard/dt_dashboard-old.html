@@ -1,0 +1,365 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content%}
+
+<link rel="stylesheet" href="{% static 'hmis_dash/css/index.css' %}">
+
+<style>
+    #indiDetails {
+        width: 100%;
+        height: 100%;
+    }
+
+    span {
+        font-weight: bold;
+        font-size: calc(35% + 0.5vw + 0.5vh);
+    }
+    #sb_caption{
+        color: rgb(63, 62, 62);
+        font-size: calc(10% + 0.5vw + 0.5vh);
+    }
+
+    .table {
+        /* margin: 20px;
+        margin-left: 40px; */
+        margin: 0 auto;
+        /* or margin: 0 auto 0 auto */
+        width: 96%;
+    }
+
+    td {
+        font-weight: bold;
+        font-size: calc(25% + 0.5vw + 0.5vh);
+    }
+
+    td.nutri_ind {
+        width: 35%;
+    }
+
+    .table td {
+        /* width: 15%; */
+        padding-right: 0rem;
+    }
+
+    th {
+        font-size: calc(55% + 0.5vw + 0.5vh);
+        margin-left: 40px;
+        background-color: #cbebf0;
+        color: black;
+    }
+
+    span {
+        color: rgb(30, 6, 116);
+    }
+
+    .per_value {
+        background-color: rgb(233, 227, 227);
+    }
+
+    .ind_code {
+        width: 12%;
+    }
+
+    .lc_link {
+        padding-right: 20px;
+        font-weight: bold;
+    }
+
+    .dropdown-toggle,
+    .dropdown-item {
+        font-size: calc(25% + 0.5vw + 0.5vh);
+        color: #878a03;
+        background-color: rgb(233, 227, 227);
+    }
+
+    .numeric {
+        background-color: rgb(255, 255, 255);
+    }
+</style>
+
+<div class="row">
+    <div class="col-12 h-75">
+        <h1 class="display-4 font-weight-bold font-italic text-center"><u>HMIS Indicators: Visualization Dashboard ({{ fy }})</u>
+        </h1>
+    </div>
+</div>
+<form method="POST" name="hmis">
+    {% csrf_token %}
+    <div class="row mt-2 ml-2">
+        <div class="form-group">
+            <label class="d-inline-block" for="month_select">Select Month:</label>
+
+            <select class="custom-select" name="month_select" id="month-1" style="width: auto">
+                {% for month_select in months %}
+                <option value="{{ month_select.month }}">{{ month_select.month}}
+                </option>
+                {% endfor %}
+            </select>
+            <!-- <div class="col-2">
+                <select class="custom-select" name="state_select" id="state-1">
+                    <option value='India' selected>India</option>
+                </select>
+            </div> -->
+            <label class="d-inline-block ml-5" for="area_select">Select State:</label>
+            <select class="custom-select" name="area_select" id="area-1" style="width: auto">
+                {% for dist_select in dd_dt_data %}
+                <option value="{{ dist_select.state }}">{{ dist_select.state }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+    </div>
+
+</form>
+<br>
+<section id="tabs" class="project-tab">
+    <div id='indiDetails' class="col-md-12">
+        <nav>
+            <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
+                <a class="nav-item nav-link active" id="nav-pw-tab" data-toggle="tab" href="#nav-pw" role="tab"
+                    aria-controls="nav-pw" aria-selected="true">Pregnant Women related Indicators</a>
+                <a class="nav-item nav-link" id="nav-dl-tab" data-toggle="tab" href="#nav-dl" role="tab"
+                    aria-controls="nav-dl" aria-selected="true">Delivery related Indicators</a>
+            </div>
+        </nav>
+        <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="nav-pw" role="tabpanel" aria-labelledby="nav-pw-tab">
+                <div class="table-responsive-md">
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Indicator Code</th>
+                                <th scope="col" colspan="6">Indicator Name</th>
+                                <th scope="col" colspan="4">Different Visualization</th>
+                            </tr>
+
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1.2.7</td>
+                                <td colspan="6">Number of PW received 4 or more ANC check ups: <span
+                                        id="st_noanc4"></span></td>
+                                        <td colspan="2"><a
+                                            href="{% url 'xmrChart' dist_name fy %}?id1=PW_received_4_or_more_ANC_check_ups"
+                                            class="lc_link" target="_blank" style="color: #a55fa5;">XmR Chart</a>
+                            </tr>
+
+
+                            <tr>
+                                <td>1.2.4</td>
+                                <td colspan="6">Number of PW given 180 Iron Folic Acid (IFA) tablets: <span
+                                        id="st_nopwifa"></span></td>
+                                        <td colspan="2"><a
+                                            href="{% url 'xmrChart' dist_name fy %}?id1=PW_given_180_Iron_Folic_Acid_(IFA)_tablets"
+                                            class="lc_link" target="_blank" style="color: #a55fa5;">XmR Chart</a>
+                                
+                            </tr>
+
+                           
+                            <tr>
+                                <td>1.2.5</td>
+                                <td colspan="6">Number of PW given 360 Calcium tablets: <span
+                                        id="st_nopwcalcium"></span></td>
+                                        <td colspan="2"><a
+                                            href="{% url 'xmrChart' dist_name fy %}?id1=PW_given_360_Calcium_tablets"
+                                            class="lc_link" target="_blank" style="color: #a55fa5;">XmR Chart</a>
+                              
+                            </tr>
+
+                          
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    </div>
+</section>
+<script>
+    $("#area-1").change(function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: "{% url 'ajaxArea' fy %}", // the endpoint
+            method: "GET", // http method
+            data: {
+                area: $('#area-1').val(),
+                month: $('#month-1').val()
+            },
+            success: function (response) {
+                let pw_dataAjax = JSON.parse(response.context.pw_data);
+                let ci_dataAjax = JSON.parse(response.context.ci_data);
+                let cd_dataAjax = JSON.parse(response.context.cd_data);
+
+                let district = response.dist_name;
+                updateData(pw_dataAjax, ci_dataAjax, cd_dataAjax);
+            }
+        });
+
+    });
+
+
+    $("#month-1").change(function (e) {
+        areaSelected = $('#area-1').val();
+        monthSelected = $('#month-1').val();
+        e.preventDefault();
+        $.ajax({
+            url: "{% url 'ajaxArea' fy %}", // the endpoint
+            method: "GET", // http method
+            data: {
+                area: $('#area-1').val(),
+                month: $('#month-1').val()
+            },
+            success: function (response) {
+                let pw_dataAjax = JSON.parse(response.context.pw_data);
+                let ci_dataAjax = JSON.parse(response.context.ci_data);
+                let cd_dataAjax = JSON.parse(response.context.cd_data);
+
+                let district = response.dist_name;
+                updateData(pw_dataAjax, ci_dataAjax, cd_dataAjax);
+
+            }
+        });
+
+    });
+
+
+
+    data_from_django = {{ context.pw_data | safe }};
+    var pw_data = []
+    data_from_django.forEach(element => {
+        pw_data.push(element.fields);
+    });
+
+
+    data_from_django = {{ context.ci_data | safe }};
+    var ci_data = []
+    data_from_django.forEach(element => {
+        ci_data.push(element.fields);
+    });
+
+    data_from_django = {{ context.cd_data | safe }};
+    var cd_data = []
+    data_from_django.forEach(element => {
+        cd_data.push(element.fields);
+    });
+
+
+    $(function () {
+        $("#area-1").val('All States');
+        $("#month-1").val('All');
+        updateData(pw_data, ci_data, cd_data);
+
+    });
+
+
+
+    function updateData(pw_data, ci_data, cd_data) {
+        //PW Related
+        // document.getElementById('st_totpwanc').innerHTML = pw_data[0].tot_no_pw_reg_anc;
+
+        // document.getElementById('st_noearlyanc').innerHTML = pw_data[0].no_early_anc_register;
+        // document.getElementById('dt_earlyanc').innerHTML = pw_data[0].early_anc_register + "%";
+
+        document.getElementById('st_noanc4').innerHTML = pw_data[0].no_anc_4_or_more;
+        // document.getElementById('dt_anc4ormore').innerHTML = pw_data[0].anc_4_or_more + "%";
+
+        // document.getElementById('st_nopwtt1').innerHTML = pw_data[0].no_pw_given_tt1;
+        // document.getElementById('dt_pwtt1').innerHTML = pw_data[0].pw_tt1_given + "%";
+
+        // document.getElementById('st_nopwtt2').innerHTML = pw_data[0].no_pw_given_tt2;
+        // document.getElementById('dt_pwtt2').innerHTML = pw_data[0].pw_tt2_given + "%";
+
+        // document.getElementById('st_nopwttbooster').innerHTML = pw_data[0].no_pw_given_tt_booster;
+        // document.getElementById('dt_pwttbooster').innerHTML = pw_data[0].pw_tt_booster_given + "%";
+
+        document.getElementById('st_nopwifa').innerHTML = pw_data[0].no_pw_given_ifa;
+        // document.getElementById('dt_pwifa').innerHTML = pw_data[0].pw_ifa + "%";
+
+        document.getElementById('st_nopwcalcium').innerHTML = pw_data[0].no_pw_given_calcium;
+        // document.getElementById('dt_pwCalcium').innerHTML = pw_data[0].pw_calcium + "%";
+
+        // document.getElementById('st_nopwalben').innerHTML = pw_data[0].no_pw_given_albendazole;
+        // document.getElementById('dt_pwalben').innerHTML = pw_data[0].pw_albendazole + "%";
+
+        // document.getElementById('st_nocsection').innerHTML = pw_data[0].tot_c_section_deliveries;
+        // document.getElementById('dt_csection').innerHTML = pw_data[0].c_section_deliveries + "%";
+
+        // document.getElementById('st_totstb').innerHTML = pw_data[0].tot_still_birth;
+        // document.getElementById('st_stbirth').innerHTML = pw_data[0].per_still_birth + "%";
+
+        // //Child Immunisation Related
+        // document.getElementById('st_totchldborn').innerHTML = ci_data[0].tot_chld_born;
+
+        // document.getElementById('st_nocivitk1').innerHTML = ci_data[0].chld_immunzt_vit_k1;
+        // document.getElementById('st_civitk1').innerHTML = ci_data[0].per_chld_immunzt_vit_k1 + "%";
+
+        // document.getElementById('st_nocibcg').innerHTML = ci_data[0].chld_immunzt_bcg;
+        // document.getElementById('st_cibcg').innerHTML = ci_data[0].per_chld_immunzt_bcg + "%";
+
+        // document.getElementById('st_nocimr').innerHTML = ci_data[0].chld_immunzt_9to11m_mr;
+        // document.getElementById('st_cimr').innerHTML = ci_data[0].per_chld_immunzt_9to11m_mr + "%";
+
+        // document.getElementById('st_nocimsl').innerHTML = ci_data[0].chld_immunzt_9to11m_measl_1st_dose;
+        // document.getElementById('st_cimsl').innerHTML = ci_data[0].per_chld_immunzt_9to11m_measl_1st_dose + "%";
+
+        // document.getElementById('st_nocivita').innerHTML = ci_data[0].chld_immunzt_vit_a_dose_1;
+        // document.getElementById('st_civita').innerHTML = ci_data[0].per_chld_immunzt_vit_a_dose_1 + "%";
+
+        // document.getElementById('st_nocialben').innerHTML = ci_data[0].no_chld_12to59m_albendazole;
+        // document.getElementById('st_cialben').innerHTML = ci_data[0].per_no_chld_12to59m_albendazole + "%";
+
+        // //Child Disease Related
+
+        // document.getElementById('st_nocdpneu').innerHTML = cd_data[0].chld_disease_pneumonia;
+        // document.getElementById('st_cdpneu').innerHTML = cd_data[0].per_chld_disease_pneumonia + "%";
+
+        // document.getElementById('st_nocdsepsis').innerHTML = cd_data[0].chld_disease_sepsis;
+        // document.getElementById('st_cdsepsis').innerHTML = cd_data[0].per_chld_disease_sepsis + "%";
+
+        // document.getElementById('st_nocdtb').innerHTML = cd_data[0].chld_disease_tb;
+        // document.getElementById('st_cdtb').innerHTML = cd_data[0].per_chld_disease_tb + "%";
+
+        // document.getElementById('st_nocdmalaria').innerHTML = cd_data[0].chld_disease_malaria;
+        // document.getElementById('st_cdmalaria').innerHTML = cd_data[0].per_chld_disease_malaria + "%";
+
+        // document.getElementById('st_nocddiarh').innerHTML = cd_data[0].chld_disease_diarrhoea;
+        // document.getElementById('st_cddiarh').innerHTML = cd_data[0].per_chld_disease_diarrhoea + "%";
+
+        // // document.getElementById('st_nocddiartrdip').innerHTML = cd_data[0].chld_disease_diarrhoea_trtd_inpatnt;
+        // // document.getElementById('st_cddiartrdip').innerHTML = cd_data[0].per_chld_disease_diarrhoea_trtd_inpatnt + "%";
+
+        // // document.getElementById('st_nocduri').innerHTML = cd_data[0].chld_admtd_upper_resp_infec;
+        // // document.getElementById('st_cduri').innerHTML = cd_data[0].per_chld_admtd_upper_resp_infec + "%";
+
+        // document.getElementById('st_nocdsam').innerHTML = cd_data[0].chld_disease_sam;
+        // document.getElementById('st_cdsam').innerHTML = cd_data[0].per_chld_disease_sam + "%";
+
+
+        let state = '{{ dist_name}}';
+        // state =  state.replace(/ /g, '_');
+        // if(pw_data[0].state != 'state')
+        //     {
+        let newState = pw_data[0].state;
+        newState = newState.replace(/ /g, '_');
+        $('a.lc_link').each(function () {
+            var oldUrl = $(this).attr("href"); // Get current url
+            let stateVal = oldUrl.split('/')[1];
+
+            if (!stateVal.startsWith('20'))
+                var newUrl = oldUrl.replace(stateVal, newState); // Create new url
+
+            $(this).attr("href", newUrl); // Set herf value
+        });
+
+        // }
+
+    }
+
+</script>
+
+{% endblock %}

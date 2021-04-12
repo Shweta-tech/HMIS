@@ -6,11 +6,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
 from django.db.models import Q
-from .models import (HmisStatePw, HmisStChldImmunzt, HmisStChldDisease)
+from .models import (HmisStatePw,PopuStaticData, HmisStChldImmunzt, HmisStChldDisease,TargetAchieved,Hmis10IndiStlevel)
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core import serializers
 from django.core.serializers import serialize
-from .serializers import HmisStatePwSerializer, HmisStCdSerializer, HmisStCiSerializer
+from .serializers import HmisStatePwSerializer, HmisStCdSerializer, HmisStCiSerializer,TargetAcheivedSerializer
 import json
 from django.http import JsonResponse
 
@@ -47,26 +47,36 @@ class DashboardView(TemplateView):
 class RegionOverview(LoginRequiredMixin, TemplateView):
     login_url = '/login/'
     redirect_field_name = 'login'
-    def post(self,request):
-        username = request.user.username
-        fy_name = request.POST['fy_select']
+    def get(self,request):
+        # username = request.user.username
+        # fy_name = request.POST['fy_select']
       
-        district_name ='All_States'
-        pw_data = HmisStatePw.objects.filter(Q(state='All States') & Q(year=fy_name) & Q(month='All'))
-        ci_data = HmisStChldImmunzt.objects.filter(Q(state='All States') & Q(year=fy_name) & Q(month='All'))
-        cd_data = HmisStChldDisease.objects.filter(Q(state='All States') & Q(year=fy_name) & Q(month='All'))
-        dt_name = HmisStatePw.objects.values('state').distinct().order_by('state')
-        month_name = HmisStatePw.objects.filter(Q(year=fy_name)).values('month').distinct().order_by('month')
+        district_name ='India'
+        pw_data = Hmis10IndiStlevel.objects.filter(Q(state='India') & Q(year='2019-2020') & Q(month='All'))
+        ta_data = TargetAchieved.objects.filter(Q(year='2019-2020'))
+        ci_data = HmisStChldImmunzt.objects.filter(Q(state='India') & Q(year='2019-2020') & Q(month='All'))
+        cd_data = HmisStChldDisease.objects.filter(Q(state='India') & Q(year='2019-2020') & Q(month='All'))
+        dt_name = Hmis10IndiStlevel.objects.values('state').distinct().order_by('state')
+        month_name = HmisStatePw.objects.filter(Q(year='2019-2020')).values('month').distinct().order_by('month')
+        data = Hmis10IndiStlevel.objects.filter(Q(year='2019-2020')).order_by('month').exclude(month='All')
+        popu_data = PopuStaticData.objects.filter(Q(year='2019-2020'))
+        print(data)
+        st_name = Hmis10IndiStlevel.objects.values('state').distinct().order_by('state')
+        fyList = Hmis10IndiStlevel.objects.values('year').distinct().order_by('year')
+        jsondata = serializers.serialize('json',data)
         pw_json = serializers.serialize('json',pw_data)
         ci_json = serializers.serialize('json',ci_data)
         cd_json = serializers.serialize('json',cd_data)
+        ta_json = serializers.serialize('json',ta_data)
+        popu_json = serializers.serialize('json',popu_data)
         context = {
             'pw_data':pw_json,
             'ci_data':ci_json,
-            'cd_data':cd_json
+            'cd_data':cd_json,
+            'ta_data':ta_json,
+            'popu_data':popu_json
         }
-        return render(request,'dashboard/dt_dashboard.html', {'dd_dt_data':dt_name, 'context':context, 'dist_name':district_name, 'months':month_name, 'fy': fy_name})
-
+        return render(request,'dashboard/dt_dashboard.html', {'data':jsondata, 'fy': '2019-2020', 'fyList':fyList, 'state':st_name,'dd_dt_data':dt_name, 'context':context, 'dist_name':district_name, 'months':month_name})
 
 
 def login_request(request):

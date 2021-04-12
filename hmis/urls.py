@@ -19,7 +19,7 @@ from dashboard.views import DashboardView, RegionOverview
 from hmis_dash.views import (HMISDashboardView, hmisBarChart, hmisLineChart, hmisBarNumericChart, hmisLineNumericChart,
     chldImmuBar, chldImmuLine, chldImmuBarNumeric, chldImmuLineNumeric, chldDiseaseBar, chldDiseaseLine, chldDiseaseBarNumeric,
     chldDiseaseLineNumeric, hmisTableChart, pieStateLevel, pieChildDisease, pieChildImmu,mapStPW, mapStChldImmu, mapStChldDisease,
-    fyLine, fyLineNum, fyChldImmuLine, fyChldImmuLineNum, fyChldDiseaseLine, fyChldDiseaseLineNum)
+    fyLine, fyLineNum, fyChldImmuLine, fyChldImmuLineNum, fyChldDiseaseLine, fyChldDiseaseLineNum, XmRChart,stack,XmRChartPercent)
 from django.conf import settings
 from django.conf.urls.static import static
 from dashboard import views
@@ -27,12 +27,15 @@ from dashboard import views
 urlpatterns = [
     url(r'^$', DashboardView.as_view(), name='home'),
     url(r'^dashboard/$', RegionOverview.as_view(), name='overview'),
+    url(r'^(?P<dist_name>[-\w]+)/(?P<fy>[-\w\ ]+)/hmis_dash/stack$', stack.as_view(), name='stack'),
     url(r'^(?P<fy>[-\w\ ]+)/dashboard/ajax/areaChange/$', views.create_post_area, name='ajaxArea'),    
     
     url(r'^hmis_dash$', HMISDashboardView.as_view(), name='hmis_dash'),
     url(r'^(?P<dist_name>[-\w]+)/(?P<fy>[-\w\ ]+)/hmis_dash/barchart$', hmisBarChart.as_view(), name='barchart'),
     url(r'^(?P<dist_name>[-\w]+)/(?P<fy>[-\w\ ]+)/hmis_dash/fy_line$', fyLine.as_view(), name='fy_line'),
     url(r'^(?P<dist_name>[-\w]+)/(?P<fy>[-\w\ ]+)/hmis_dash/fy_lineNum$', fyLineNum.as_view(), name='fy_lineNum'),
+    url(r'^(?P<dist_name>[-\w]+)/(?P<fy>[-\w\ ]+)/hmis_dash/xmrChart$', XmRChart.as_view(), name='xmrChart'),
+    url(r'^(?P<dist_name>[-\w]+)/(?P<fy>[-\w\ ]+)/hmis_dash/xmrChart_percent$', XmRChartPercent.as_view(), name='xmrChart_percent'),
     url(r'^(?P<fy>[-\w\ ]+)/hmis_dash/linechart$', hmisLineChart.as_view(), name='linechart'),
     url(r'^(?P<dist_name>[-\w]+)/(?P<fy>[-\w\ ]+)/hmis_dash/barnumeric$', hmisBarNumericChart.as_view(), name='barnumeric'),
     url(r'^(?P<fy>[-\w\ ]+)/hmis_dash/linenumeric$', hmisLineNumericChart.as_view(), name='linenumeric'),

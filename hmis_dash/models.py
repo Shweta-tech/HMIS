@@ -184,3 +184,116 @@ class GeojsonIndiaLevel(models.Model):
     class Meta:
         managed = False
         db_table = 'geojson_india_level'
+
+class TargetAchieved(models.Model):
+    year = models.CharField(max_length=20, blank=True, null=True)
+    state = models.CharField(max_length=50, blank=True, null=True)
+    per_4_or_more_anc = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    per_pw_given_ifa = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    per_pw_given_calcium = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    per_insti_del = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    per_early_breast_fed = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    per_hbnc_counsel = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    per_child_given_ifa = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    per_child_given_albendazole = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    per_child_given_vita = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    per_vhsnds = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    avg_ta = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'target_achieved'
+
+
+
+
+class Hmis10IndiStlevel(models.Model):
+    year = models.CharField(max_length=20, blank=True, null=True)
+    month = models.CharField(max_length=20, blank=True, null=True)
+    state = models.CharField(max_length=50, blank=True, null=True)
+    tot_no_pw_reg = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    early_anc_reg = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    no_4_or_more_anc = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_4_or_more_anc = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    no_pw_given_ifa = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_pw_given_ifa = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    no_pw_given_calcium = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_pw_given_calcium = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    no_insti_del = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_insti_del = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    c_section_del = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    early_breast_fed_numeric = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_early_breast_fed = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    hbnc_counsel_numeric = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_hbnc_counsel = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    no_child_given_ifa = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_child_given_ifa = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    no_child_given_albendazole = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_child_given_albendazole = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    no_child_given_vita = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_child_given_vita = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    vhsnds_numeric = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_vhsnds = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    total_births = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    total_deliveries = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    child_6to59months = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    child_12to59months = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    tot_aww_count = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'hmis_10indi_stlevel'
+
+
+
+class PopuStaticData(models.Model):
+    year = models.CharField(max_length=20, blank=True, null=True)
+    state = models.CharField(max_length=50, blank=True, null=True)
+    women_15to49 = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    pregnant_women = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    tot_child_born = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    child_under_5 = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'popu_static_data'
+
+class GapAnalysis(models.Model):
+    year = models.CharField(max_length=20, blank=True, null=True)
+    month = models.CharField(max_length=20, blank=True, null=True)
+    state = models.CharField(max_length=50, blank=True, null=True)
+    tot_no_pw_reg = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    early_anc_reg = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_early_anc_reg = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    no_4_or_more_anc = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_4_or_more_anc = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    no_pw_given_ifa = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_pw_given_ifa = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    no_pw_given_calcium = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_pw_given_calcium = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    no_insti_del = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_insti_del = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    c_section_del = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_c_section_del = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    early_breast_fed_numeric = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_early_breast_fed = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    hbnc_counsel_numeric = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_hbnc_counsel = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    guide_delivery = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    no_child_given_ifa = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_child_given_ifa = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    no_child_given_albendazole = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_child_given_albendazole = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    no_child_given_vita = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_child_given_vita = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    vhsnds_numeric = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    per_vhsnds = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    no_child_given_bcg = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    child_6to59months = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    child_12to59months = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    tot_aww_count = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    total_facilities = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'gap_analysis'

@@ -1,0 +1,359 @@
+{% extends 'dashboard/dash_base.html' %}
+{% load static %}
+
+{% block feature_css %}
+<!doctype html>
+<html>
+
+<head>
+    <title>Stack Area Chart</title>
+
+    <style>
+  .lc_link {
+    float: right;
+    font-size: calc(50% + 0.75vw + 0.75vh);
+  }
+        .chart-container {
+    position: absolute;
+    
+    width: 95vw;
+    height: 80vh;
+    font-size: calc(100% + 0.5vw + 0.5vh);
+  }
+  #myChart{
+    margin-left: 100px;
+    width: 91vw;
+    height: 70vh;
+    font-size:calc(100% + 0.5vw + 0.5vh);
+    color: black;
+  }
+    </style>
+</head>
+{% endblock %}
+
+{% block content %}
+<body>
+    <div class="row">
+        <div class="col-12 h-75">
+          <div class="heading text-center"> <span id="indicator"></span></div>
+        </div>
+      </div>
+      
+      <div class="row mb-2" style="background-color: #52be4eb4;">
+    
+        <label class="d-inline-block text-light ml-5 mt-2 lc_link"  for="area_select">Select State:</label>
+
+        <div class="dropdown m-2">
+          <select name="state" id="state" class="custom-select lc_link">
+              {% for state_select in state %}
+              <option value='{{ state_select.state }}'>{{ state_select.state }}</option>
+              {% endfor %}
+          </select>
+      </div>
+      <label class="d-inline-block text-light ml-5 mt-2 lc_link" for="area_select">Select Year:</label>
+      
+      <div class="dropdown m-2">
+        <select name="fyList" id="fyList" class="custom-select lc_link">
+            {% for fy_select in fyList %}
+            <option value='{{ fy_select.year }}'>{{ fy_select.year }}</option>
+            {% endfor %}
+        </select>
+      </div>
+   </div>
+   
+   <div class="row justify-content-center">
+    <div class="col-12 chart-container mt-0">
+      <canvas id="myChart"></canvas>
+    </div>
+      
+      {% endblock %}
+      
+      {% block extra_js %}
+   
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.6.0/d3.min.js"
+        integrity="sha512-XgjkLS0sSzUq88GniFcrLy6zjgVWkBoRFziaLm1Z+gVgkHuO3ieikhD/Q6eNKXAsp88yvBFS0n6ovVlabXftIg=="
+        crossorigin="anonymous"></script>
+    <script src="{% static 'hmis_dash/js/Chart.min.js' %}"></script>
+    <script>
+//     d3.csv("{% static 'hmis_dash/hmis_state_pw.csv' %}",  function (d) {
+
+// return d;
+let sel_fy = '{{ fy }}';
+let fy = sel_fy;
+let state = "India"
+var filterdata, filterdata1
+let selectedYear = [];
+let stateName = [];
+//   let mmRsd = [];
+stateName.push('India');
+selectedYear.push(sel_fy)
+
+months={{ month | safe}}
+console.log(months)
+data_from_django = {{ data | safe }};
+var data = []
+data_from_django.forEach(element => {
+data.push(element.fields);  });
+
+data.forEach(function (d) {
+
+    d.tot_no_pw_reg = +d.tot_no_pw_reg;
+    d.no_4_or_more_anc = +d.no_4_or_more_anc;
+    d.no_pw_given_calcium = +d.no_pw_given_calcium;
+    d.state = d.state;
+    d.month = d.month;
+    d.year = d.year;  
+});
+
+  //Initial Graph
+  // st_data = filterCSV(data, 'state', stateName);
+  //  mmRsd = [];
+
+  // mmRsd = calc_mean(st_data, section); 
+
+  // setData(st_data, section, mmRsd);
+
+  
+  let choices = parseURLParameters(window.location.href);
+function parseURLParameters() {
+    var query = (window.location.search || '?').substr(1);
+    var map = [];
+    query.replace(/([^&=]+)=?([^&]*)(?:&+|$)/g, function (match, key, value) {
+      map.push(value);
+    });
+ 
+    return map;
+  }
+
+  let selectedCat = choices[0].replace(/_/g, ' ');
+
+  const render = rdata => {
+
+ 
+    var one = []
+            var two = []
+console.log(rdata, "o/data")
+//access data-one financial year-state-month 
+for (let i = 0; i < rdata.length; i++) {
+                // month[i] = filterdata1[i]["month"]
+
+                one[i] = rdata[i].value
+               two[i] = rdata[i].value1;
+                
+            }
+
+
+
+//stacked area chart
+var ctx = document.getElementById("myChart").getContext("2d");
+
+const colors = {
+    green: {
+        fill: '#dad6ff',
+        stroke: '#7772a6',
+    },
+    lightBlue: {
+        fill: '#caeefc',
+        stroke: '#6f9fb3',
+    },
+};
+
+// const early_anc_register = early_anc_register;
+// const anc_4_or_more = anc_4_or_more;
+
+const myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: months,
+        datasets: [{
+            label: section1,
+            fill: true,
+            backgroundColor: colors.lightBlue.fill,
+            pointBackgroundColor: colors.lightBlue.stroke,
+            borderColor: colors.lightBlue.stroke,
+            pointHighlightStroke: colors.lightBlue.stroke,
+            // borderCapStyle: 'butt',
+            data: two,
+        }, {
+            label: section,
+            fill: true,
+            backgroundColor: colors.green.fill,
+            pointBackgroundColor: colors.green.stroke,
+            borderColor: colors.green.stroke,
+            pointHighlightStroke: colors.green.stroke,
+            data: one,
+        }]
+    },
+    options: {
+        responsive: false,
+        // Can't just just `stacked: true` like the docs say
+        scales: {
+        xAxes: [{
+            gridLines: {
+                display:false
+            },
+            ticks: {
+                    autoSkip: false,
+                    maxRotation: 55,
+                    minRotation: 55,
+                    // padding: 50
+                }
+        }],
+        yAxes: [{
+            gridLines: {
+                display:false
+            }   
+        }]
+    },
+        animation: {
+            duration: 750,
+        },
+    }
+});
+d3.select('#indicator').text(function () {
+      console.log(selectedYear,"yuear")
+        var i_name = selectedCat + " State-Wise " + selectedYear;
+        return i_name; }) 
+
+  }
+//   render(filterdata1)
+
+  let section1;
+  let section ='no_early_anc_register'
+  filterdata = filterCSV(data, 'year', fy);
+  filterdata1 = filterCSV(filterdata, 'state', state);
+// console.log(filterdata, "fy")
+  console.log(filterdata1, "fy state")
+  setData(filterdata1, section);
+   
+
+  if (choices.length > 0) {
+
+    console.log(selectedCat)
+    
+    filterdata = filterCSV(data, 'year', fy);
+    filterdata1 = filterCSV(filterdata, 'state', state);
+    setSection(selectedCat);
+
+    // mmRsd = calc_mean(st_data, section); 
+    setData(filterdata1, section);
+    }
+    else {
+    filterdata = filterCSV(data, 'year', fy);
+    filterdata1 = filterCSV(filterdata, 'state', state);
+
+    // mmRsd = calc_mean(f/yData, section); 
+    setData(filterdata1, sectionRsd);
+  }
+
+// }).then(function (data) {
+    console.log(data)
+    var chart;
+
+function filterCSV(csv, key, value) {
+    var result = [];
+    csv.forEach(function (val, idx, arr) {
+        if (val[key] == value) {
+            result.push(val)
+        }
+    })
+    return result;
+}
+function setSection(val) {
+    if (val == 'VHSNDS')
+      section = 'vhsnds_numeric';
+    else if (val == 'No of institutional deliveries')
+      section = 'no_insti_del';
+    else if (val == 'PW received 4 or more ANC check ups')
+      section = 'no_4_or_more_anc';
+    else if (val == 'Early Breastfed')
+      section = 'early_breast_fed_numeric';
+    else if (val == 'HBNC counsel')
+      section = 'hbnc_counsel_numeric';
+    else if (val == 'No of children given IFA')
+      section = 'no_child_given_ifa';
+    else if (val == 'PW given 360 Calcium tablets')
+      section = 'no_pw_given_calcium';
+    else if (val == 'PW given 180 Iron Folic Acid (IFA) tablets')
+      section = 'no_pw_given_ifa';
+    else if (val == 'No of children given Albendazole')
+      section = 'no_child_given_albendazole';
+    else if(val == 'No of children given Vitamin-A'){
+      section = 'no_child_given_vita';
+  
+    }
+  }
+
+
+  $("#state").change(function () {
+    stateName = [];
+    stateName = $('#state').val();
+    filterdata = filterCSV(data, 'year', fy);
+filterdata1 = filterCSV(filterdata, 'state', stateName);
+    // ctx.selectAll("*").remove();
+    //  mmRsd = [];
+
+//   mmRsd = calc_mean(fyData, section); 
+    setData(filterdata1, section);
+  });
+  $("#fyList").change(function () {
+        selectedYear = [];
+        selectedYear = $('#fyList').val();
+        filterdata = filterCSV(data, 'year', selectedYear);
+filterdata1 = filterCSV(filterdata, 'state', stateName);
+        // ctx.selectAll("*").remove();
+        console.log(filterdata1)
+        setData(filterdata1, section);
+    });
+  function setData(data, section) {
+    console.log(section,"section")
+  
+    if(section == "no_4_or_more_anc" || section=="no_pw_given_calcium" || section=="no_pw_given_ifa")
+                {section1 = "early_anc_reg"}
+
+    else if(section=="no_insti_del"){
+        section1="c_section_del"
+    }
+    else if(section=="early_breast_fed_numeric"){
+        section1="no_insti_del"
+    }
+    else if(section=="hbnc_counsel_numeric"){
+        section1="guide_delivery"
+    }
+    else if(section=="vhsnds_numeric"){
+        section1="total_facilities"
+    }
+    else if(section=="no_child_given_ifa"){
+        section1="child_6to59months"
+    }
+    else if(section=="no_child_given_vita"){
+        section1="no_child_given_bcg"
+    }
+    else if(section=="no_child_given_albendazole"){
+        section1="child_12to59months"
+    }
+    var dataFilter = data.map(function (d) { return { year: d.year, month: d.month, state: d.state, value: d[section], value1:d[section1] } })
+
+    //debugger
+
+    dataFilter.forEach(function (d) {
+      d.value = +d.value;
+    });
+console.log(data)
+    //debugger
+    render(dataFilter);
+
+    // jQuery('h1.page-header').html(section);
+  }
+  $(function () {
+    //bind event
+    $('#state').val('India');
+    $('#fyList').val(sel_fy);
+
+
+  });
+</script>
+</body>
+
+</html>
+{% endblock %}
